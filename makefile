@@ -1,21 +1,6 @@
-# # Define variables
-# CC = gcc
-# CFLAGS = -Wall -Wextra -pedantic -std=c17 -D_GNU_SOURCE -g -I/usr/include/ -I/usr/include/x86_64-linux-gnu
-# CFLAGS = -std=c17 -D_GNU_SOURCE -g -I/usr/include/ -I/usr/include/x86_64-linux-gnu
-# CFLAGS_END = -lsqlcipher -lykpiv -lSDL2
-# # MacOS
-# CFLAGS = -std=c17 -D_GNU_SOURCE -g -I/opt/homebrew/Cellar/sdl2/2.30.8/include -I/opt/homebrew/Cellar/sdl2_image/2.8.2_2/include -I/usr/local/include/ -I/opt//homebrew/Cellar/sqlcipher/4.6.1/include 
-# SRCDIR = src
-# BUILDDIR = build
 CLI_TARGET = azkaban-cli
 TUI_TARGET = azkaban_tui
 GUI_TARGET = azkaban
-#
-# # Source files
-# SRC = $(wildcard $(SRCDIR)/*.c)
-# OBJ = $(SRC:$(SRCDIR)/%.c=$(BUILDDIR)/%.o)
-
-
 
 # Define variables
 CC = gcc
@@ -28,13 +13,14 @@ CFLAGS_LINUX = $(CFLAGS_COMMON) -I/usr/include/ -I/usr/include/x86_64-linux-gnu
 LIBS_LINUX = $(LIBS_COMMON) -lSDL2
 
 # MacOS configuration
-CFLAGS_MAC = -I/opt/homebrew/Cellar/sqlcipher/4.6.1/include -I/opt/homebrew/Cellar/sdl2/2.30.8/include -I/opt/homebrew/Cellar/sdl2_image/2.8.2_2/include -I/opt/homebrew/Cellar/sdl2_ttf/2.22.0/include $(CFLAGS_COMMON) 
-LIBS_MAC = $(LIBS_COMMON) -lSDL2
+CFLAGS_MAC = $(CFLAGS_COMMON) $(shell sdl2-config --cflags) -I/opt/homebrew/Cellar/sqlcipher/4.6.1/include
+LIBS_MAC = $(LIBS_COMMON) $(shell sdl2-config --libs) -lSDL2_ttf -lSDL2_image
 
 # Source files
 SRCDIR = src
 BUILDDIR = build
-SRC = $(wildcard $(SRCDIR)/*.c)
+SRC = $(wildcard $(SRCDIR)/*.c $(SRCDIR)/*/*.c)
+SRC = $(shell find $(SRCDIR) -type f -name '*.c')
 OBJ = $(SRC:$(SRCDIR)/%.c=$(BUILDDIR)/%.o)
 
 # Platform-specific settings
@@ -61,7 +47,7 @@ clean:
 
 setup:
 	@echo "Setting up directories..."
-	@mkdir -p $(BUILDDIR)
+	@mkdir -p $(BUILDDIR) $(dir $(OBJ))
 
 # Compile target: build the executable
 $(GUI_TARGET): $(filter-out $(BUILDDIR)/$(CLI_TARGET).o $(BUILDDIR)/$(TUI_TARGET).o, $(OBJ))
